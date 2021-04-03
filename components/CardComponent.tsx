@@ -1,10 +1,12 @@
 import React from "react";
+import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { GraphIcon } from "./CardBGSvg";
 
 interface CustomButtonProps {
+  parentID: string;
   title: string;
   excerpt: string;
   toOnClick: string;
@@ -12,6 +14,12 @@ interface CustomButtonProps {
 }
 
 export const CardComponent = (props: CustomButtonProps) => {
+  const navigation = useNavigation();
+  const goTo = () => {
+    console.log("BTN CLICKED", props.toOnClick);
+    navigation.navigate(props.toOnClick);
+  };
+
   return (
     <View style={styles.card}>
       <LinearGradient
@@ -24,7 +32,7 @@ export const CardComponent = (props: CustomButtonProps) => {
         <GraphIcon style={styles.cardSVGBG} {...props} />
         <Text style={styles.cardTitle}>{props.title}</Text>
         <Text style={styles.cardExcerpt}>{props.excerpt}</Text>
-        <TouchableOpacity style={styles.buttonWrapper}>
+        <TouchableOpacity onPress={goTo} style={styles.buttonWrapper}>
           <View style={styles.buttonView}>
             <Text style={styles.buttonTitle}>Sorgu sayfasına git</Text>
           </View>
