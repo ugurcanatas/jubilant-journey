@@ -8,7 +8,8 @@ export const queryCardsLayout = gql`
             items {
                 title,
                 excerpt,
-                toOnClick
+                toOnClick,
+                gradientColors
             }
         }
     }
