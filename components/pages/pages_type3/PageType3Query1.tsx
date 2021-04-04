@@ -25,7 +25,6 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
   const [date, setDate] = useState(new Date());
   const [buttonDisabled, setDisabled] = useState(true);
   const [draw, setDraw] = useState(false);
-  const [polygons, setPolygons] = useState([]);
   const [geojson, setGeojson] = useState({});
 
   React.useLayoutEffect(() => {
@@ -78,7 +77,7 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
     }
 
     console.log("USE EFFECT DRAW", draw);
-  }, [loading, called, data, draw, polygons]);
+  }, [loading, called, data, draw]);
 
   const drawRoute = async () => {
     const { getLongestTripByDate } = data;
@@ -104,53 +103,23 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
     console.log("RESPONSE", response);
     const { routes } = response;
     const [routeData] = routes;
-    setGeojson(routeData);
     const { geometry: routeGeometry } = routeData;
     const { coordinates: routeCoordinates } = routeGeometry;
-    const namedCoordinates = routeCoordinates.map((v: number[]) => {
-      return { latitude: v[0], longitude: v[1] };
-    });
-    //console.log("NAMED", namedCoordinates);
-
-    setTimeout(() => {
-      setDraw(true);
-      setPolygons(namedCoordinates);
-    }, 5000);
-  };
-
-  const renderPolylines = () => {
-    if (polygons.length > 0) {
-      console.log("RENDERING POLYLINES");
-
-      return (
-        <Polyline
-          coordinates={polygons}
-          strokeWidth={6}
-          strokeColor="red"
-          fillColor="rgba(100,0,0,0.5)"
-        />
-      );
-    }
-  };
-
-  const myPlace = {
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "LineString",
-        properties: {},
-        geometry: {
+    const gJSON: any = {
+      type: "FeatureCollection",
+      features: [
+        {
           type: "LineString",
-          coordinates: [
-            [-73.992463, 40.748469],
-            [-73.989617, 40.747277],
-            [-73.987766, 40.749793],
-            [-73.981263, 40.747051],
-            [-73.98031, 40.748335],
-          ],
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: routeCoordinates,
+          },
         },
-      },
-    ],
+      ],
+    };
+    setGeojson(gJSON);
+    setDraw(true);
   };
 
   return (
@@ -224,18 +193,14 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
           longitudeDelta: 0.0421,
         }}
       >
-        <Polyline
-          coordinates={polygons}
-          strokeWidth={6}
-          strokeColor="red"
-          fillColor="red"
-        />
-        <Geojson
-          geojson={myPlace}
-          strokeColor="red"
-          fillColor="green"
-          strokeWidth={2}
-        />
+        {draw && (
+          <Geojson
+            geojson={geojson}
+            strokeColor="red"
+            fillColor="green"
+            strokeWidth={6}
+          />
+        )}
       </MapView>
 
       <View style={{ width: "100%", position: "absolute", bottom: 8 }}>
