@@ -3,10 +3,9 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
   TouchableOpacity,
   Modal,
-  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -29,7 +28,7 @@ interface Q1_FlatList {
   lookup_result: TaxiZoneDataTypes;
 }
 
-export const PageType2Query1 = ({ navigation }: Props) => {
+export const PageType2Query1 = ({ navigation }: { navigation: any }) => {
   const [pickerValue, setPickerValue] = useState(1);
   const [showFilter, setShowFilter] = useState(false);
   const [date_start, setStartDate] = useState(new Date());
@@ -71,9 +70,8 @@ export const PageType2Query1 = ({ navigation }: Props) => {
           </Text>
           <Picker
             mode="dialog"
-            numberOfLines={5}
             selectedValue={pickerValue}
-            onValueChange={(itemValue: number) => setPickerValue(itemValue)}
+            onValueChange={(itemValue) => setPickerValue(Number(itemValue))}
           >
             {getLocations.map((v: TaxiZoneDataTypes) => {
               const { Borough, Zone, LocationID } = v;
@@ -148,10 +146,6 @@ export const PageType2Query1 = ({ navigation }: Props) => {
     );
   };
 
-  const splitted = date_start.toISOString().substring(0, 10);
-  console.log("SPLUTTED", splitted);
-  console.log("TYPE OF ", typeof pickerValue);
-
   const [
     getFilteredData,
     { called: lazyCalled, loading: lazyLoading, data: lazyData },
@@ -163,32 +157,22 @@ export const PageType2Query1 = ({ navigation }: Props) => {
     },
   });
 
-  if (lazyCalled) {
-    console.log("REQUEST LAZY");
-  }
-  if (lazyCalled && lazyLoading) {
-    console.log("GETTING");
-  }
-
-  console.log("Data Received", lazyData);
-
-  const renderChilds = ({ item }: { item: Q1_FlatList }) => {
-    const { _id, countOfVehicles } = item;
-    console.log("Childs Rendering...", _id, countOfVehicles);
-
-    return (
-      <View style={{ flex: 1, flexDirection: "row" }}>
-        <Text>{countOfVehicles}</Text>
-      </View>
-    );
-  };
-
   const renderFlatList = () => {
     console.log("LAZY CALLED STATUS", lazyCalled);
     console.log("LAZY LOADING STATUS", lazyLoading);
 
     if (lazyLoading) {
-      return <Text>Loading...</Text>;
+      return (
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#2E246D" />
+        </View>
+      );
     }
 
     if (!lazyLoading && lazyCalled) {
