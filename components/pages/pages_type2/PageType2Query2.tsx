@@ -37,7 +37,7 @@ export const PageType2Query2 = () => {
           <Text style={styles.value}>📅 {dateString}</Text>
         </View>
         <View style={{ alignItems: "center" }}>
-          <Text style={styles.title}>Total Amount</Text>
+          <Text style={styles.title}>Avarage Amount</Text>
           <Text style={styles.value}>🧙🏽‍♀️ {avarageTotalAmount}</Text>
         </View>
       </View>

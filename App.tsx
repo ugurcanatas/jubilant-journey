@@ -14,6 +14,7 @@ import { PageType1Query2 } from "./components/pages/pages_type1/PageType1Query2"
 import { PageType1Query3 } from "./components/pages/pages_type1/PageType1Query3";
 import { PageType2Query1 } from "./components/pages/pages_type2/PageType2Query1";
 import { PageType2Query2 } from "./components/pages/pages_type2/PageType2Query2";
+import { PageType2Query3 } from "./components/pages/pages_type2/PageType2Query3";
 
 const client = new ApolloClient({
   uri: "http://192.168.0.47:4000/graphql",
@@ -71,6 +72,14 @@ export default function App() {
               component={PageType2Query2}
               options={{
                 headerTitle: "Tip 2 - Query 2",
+                headerBackTitle: "Main",
+              }}
+            />
+            <Stack.Screen
+              name="PageType2Query3"
+              component={PageType2Query3}
+              options={{
+                headerTitle: "Tip 2 - Query 3",
                 headerBackTitle: "Main",
               }}
             />

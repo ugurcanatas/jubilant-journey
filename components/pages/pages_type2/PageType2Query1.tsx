@@ -14,6 +14,8 @@ import { Ionicons, AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useQuery, useLazyQuery } from "@apollo/client";
 import { GetTaxiZones } from "../../../GraphQL/QueryTaxiZones";
 import { query_1 } from "../../../GraphQL/QueriesType_2/Query_1";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface TaxiZoneDataTypes {
   Borough: string;
@@ -247,41 +249,58 @@ export const PageType2Query1 = ({ navigation }: { navigation: any }) => {
         visible={showFilter}
         onRequestClose={() => setShowFilter(!showFilter)}
       >
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "column",
-            paddingTop: 24,
-            justifyContent: "flex-start",
-          }}
-        >
-          {renderPicker()}
-          {renderStartDatePicker()}
-          {renderEndDatePicker()}
-        </View>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => [getFilteredData(), setShowFilter(false)]}
-        >
+        <SafeAreaView style={{ flex: 1 }}>
           <View
             style={{
-              marginBottom: 24,
-              backgroundColor: "#3CAE6A",
-              padding: 32,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginHorizontal: 12,
             }}
           >
-            <Text
+            <Text style={{ fontFamily: "Roboto-Condensed-Bold", fontSize: 32 }}>
+              Filters
+            </Text>
+            <TouchableOpacity onPress={() => setShowFilter(!showFilter)}>
+              <Ionicons name="ios-close" size={32} color="red" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView>
+            <View
               style={{
-                textAlign: "center",
-                fontFamily: "Roboto-Condensed-Bold",
-                color: "white",
-                fontSize: 24,
+                flex: 1,
+                flexDirection: "column",
+                justifyContent: "flex-start",
               }}
             >
-              Request
-            </Text>
-          </View>
-        </TouchableOpacity>
+              {renderPicker()}
+              {renderStartDatePicker()}
+              {renderEndDatePicker()}
+            </View>
+          </ScrollView>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => [getFilteredData(), setShowFilter(false)]}
+          >
+            <View
+              style={{
+                backgroundColor: "#3CAE6A",
+                padding: 32,
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontFamily: "Roboto-Condensed-Bold",
+                  color: "white",
+                  fontSize: 24,
+                }}
+              >
+                Request
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </SafeAreaView>
       </Modal>
 
       {renderFlatList()}
