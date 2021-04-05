@@ -33,7 +33,12 @@ type TFeatures = {
  */
 type TFeatureCollection = {
   type: string;
+  properties?: OptionalID;
   features: [TFeatures];
+};
+
+type OptionalID = {
+  id: string;
 };
 
 /**

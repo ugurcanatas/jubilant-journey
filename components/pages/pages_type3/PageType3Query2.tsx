@@ -16,9 +16,10 @@ import { useQuery, useLazyQuery } from "@apollo/client";
 import { GetTaxiZones } from "../../../GraphQL/QueryTaxiZones";
 import { TaxiZoneDataTypes } from "../customTypes";
 import { query_2 } from "../../../GraphQL/QueriesType_3/Query_2";
-import { TypeQ2T3 } from "../customTypes";
+import { TypeQ2T3, TCoordinates, TFeatureCollection } from "../customTypes";
 //turf distance
 import destination from "@turf/destination";
+import uuid from "uuid";
 
 const apikey =
   "pk.eyJ1IjoieWl5dGVjcCIsImEiOiJjanNtYnMwazIwN2I4NDRxZngwNGt5M3F3In0.eI-qjRstzkOwS7oTBSA9_g";
@@ -32,6 +33,7 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [taxizones, setTaxiZones] = useState<[TaxiZoneDataTypes] | []>([]);
   const [flatList, setFlatList] = useState<[TypeQ2T3] | []>([]);
+  const [lineStrings, setLineStrings] = useState<TFeatureCollection[] | []>([]);
 
   useEffect(() => {
     if (!locationsLoading) {
@@ -55,8 +57,8 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
       });
 
       console.log("URL FETCH SET", fetchSet);
-
-      const promises = fetchSet.map((url: string) =>
+      const fcArray: TFeatureCollection[] = [];
+      fetchSet.map((url: string) =>
         fetch(url, {
           method: "GET",
           headers: {
@@ -65,15 +67,26 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
           },
         })
           .then((res: any) => res.json())
-          .then((data) => console.log("DATA,", data))
+          .then((data) => {
+            console.log("DATA,", data);
+            const { routes } = data;
+            const [routeObject] = routes;
+            const { geometry } = routeObject;
+            const { coordinates } = geometry;
+            const fc: TFeatureCollection = createFeaturesLineString(
+              coordinates
+            );
+            setLineStrings((prev) => [...prev, ...[fc]]);
+            fcArray.push(fc);
+          })
       );
+      //setLineStrings(fcArray);
 
       // const resolvedData = Promise.all(promises).then((result: string[]) => {
       //   console.log("RESULT", result);
 
       //   return result.map((r) => JSON.parse(r));
       // });
-      console.log("PROMISE ALL", promises);
     }
   }, [locationsData, locationsLoading, flatList]);
 
@@ -88,6 +101,27 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
       ),
     });
   }, [navigation]);
+
+  const createFeaturesLineString = (
+    coordinates: [TCoordinates]
+  ): TFeatureCollection => {
+    return {
+      type: "FeatureCollection",
+      properties: {
+        id: uuid.v4(),
+      },
+      features: [
+        {
+          type: "LineString",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates,
+          },
+        },
+      ],
+    };
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -108,20 +142,16 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
           longitudeDelta: 0.0421,
         }}
       >
-        {/* <Marker
-          title="asdfasdf"
-          description="asdfasdfa"
-          coordinate={startCoords}
-        />
-        <Marker coordinate={destCoords} />
-        {draw && (
-          <Geojson
-            geojson={geojson}
-            strokeColor="red"
-            fillColor="green"
-            strokeWidth={6}
-          />
-        )} */}
+        {lineStrings.length > 0 &&
+          lineStrings.map((v: TFeatureCollection) => (
+            <Geojson
+              geojson={v}
+              key={v.properties?.id}
+              strokeColor="red"
+              fillColor="green"
+              strokeWidth={6}
+            />
+          ))}
       </MapView>
     </View>
   );
