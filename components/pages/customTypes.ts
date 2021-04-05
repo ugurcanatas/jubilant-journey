@@ -80,6 +80,11 @@ type TypeQ3T1 = {
   convertedDate: string;
 };
 
+type TypeQ2T3 = {
+  trip_distance: number;
+  lookup_result: [TaxiZoneDataTypes];
+};
+
 export {
   T_Type2_Query3,
   TaxiZoneDataTypes,
@@ -90,4 +95,5 @@ export {
   TFeatureCollection,
   FlatListTypes,
   TypeQ3T1,
+  TypeQ2T3,
 };
