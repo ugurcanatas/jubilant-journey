@@ -12,7 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { useLazyQuery } from "@apollo/client";
 import destination from "@turf/destination";
-import MapView, { Polyline, Geojson } from "react-native-maps";
+import MapView, { Geojson, Marker, AnimatedRegion } from "react-native-maps";
 import { Ionicons, AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 import { query_1 } from "../../../GraphQL/QueriesType_3/Query_1";
@@ -20,12 +20,43 @@ import { query_1 } from "../../../GraphQL/QueriesType_3/Query_1";
 const apikey =
   "pk.eyJ1IjoieWl5dGVjcCIsImEiOiJjanNtYnMwazIwN2I4NDRxZngwNGt5M3F3In0.eI-qjRstzkOwS7oTBSA9_g";
 
+type ICoordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+type TCoordinates = number[];
+
+type TGeometry = {
+  type: string;
+  coordinates: [TCoordinates];
+};
+
+type TFeatures = {
+  type: string;
+  properties: any;
+  geometry: TGeometry;
+};
+
+type TFeatureCollection = {
+  type: string;
+  features: [TFeatures];
+};
+
 export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [date, setDate] = useState(new Date());
   const [buttonDisabled, setDisabled] = useState(true);
   const [draw, setDraw] = useState(false);
   const [geojson, setGeojson] = useState({});
+  const [startCoords, setStartCoors] = useState<ICoordinates | AnimatedRegion>({
+    latitude: 0,
+    longitude: 0,
+  });
+  const [destCoords, setDestCoords] = useState<ICoordinates | AnimatedRegion>({
+    latitude: 0,
+    longitude: 0,
+  });
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -81,14 +112,29 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
 
   const drawRoute = async () => {
     const { getLongestTripByDate } = data;
-    const { lookup_result, trip_distance } = getLongestTripByDate[0];
-    const { X: startLat, Y: startLon } = lookup_result[0];
+    const {
+      PULocationResult,
+      DOLocationResult,
+      trip_distance,
+    } = getLongestTripByDate[0];
+    const { X: startLat, Y: startLon } = PULocationResult[0];
+    setStartCoors({
+      latitude: startLon,
+      longitude: startLat,
+    });
+
     const finish = destination([startLat, startLon], trip_distance, 90, {
       units: "miles",
     });
     const { geometry } = finish;
     const { coordinates } = geometry;
-    //console.log("COORDINATES", coordinates);
+    setDestCoords({
+      latitude: coordinates[1],
+      longitude: coordinates[0],
+    });
+
+    console.log("Start Coords", startCoords);
+    console.log("Destination Coords", destCoords);
 
     const endpoint = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLat},${startLon};${coordinates[0]},${coordinates[1]}?geometries=geojson&access_token=${apikey}`;
 
@@ -101,25 +147,65 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
     });
     const response = await resp.json();
     console.log("RESPONSE", response);
-    const { routes } = response;
-    const [routeData] = routes;
-    const { geometry: routeGeometry } = routeData;
-    const { coordinates: routeCoordinates } = routeGeometry;
-    const gJSON: any = {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "LineString",
-          properties: {},
-          geometry: {
+    if (response.code !== "NoRoute") {
+      const { routes } = response;
+      const [routeData] = routes;
+      const { geometry: routeGeometry } = routeData;
+      const { coordinates: routeCoordinates } = routeGeometry;
+      const gJSON: TFeatureCollection = {
+        type: "FeatureCollection",
+        features: [
+          {
             type: "LineString",
-            coordinates: routeCoordinates,
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: routeCoordinates,
+            },
           },
+        ],
+      };
+      setGeojson(gJSON);
+      setDraw(true);
+    } else {
+      const { X, Y } = DOLocationResult[0];
+      setDestCoords({
+        latitude: Y,
+        longitude: X,
+      });
+
+      let endpoint = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLat},${startLon};${X},${Y}?geometries=geojson&access_token=${apikey}`;
+
+      let resp = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
-      ],
-    };
-    setGeojson(gJSON);
-    setDraw(true);
+      });
+      const response = await resp.json();
+      console.log("RESPONSE WITH FIXED", response);
+
+      const { routes } = response;
+      const [routeData] = routes;
+      const { geometry: routeGeometry } = routeData;
+      const { coordinates: routeCoordinates } = routeGeometry;
+      const gJSON: TFeatureCollection = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "LineString",
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: routeCoordinates,
+            },
+          },
+        ],
+      };
+      setGeojson(gJSON);
+      setDraw(true);
+    }
   };
 
   return (
@@ -193,6 +279,12 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
           longitudeDelta: 0.0421,
         }}
       >
+        <Marker
+          title="asdfasdf"
+          description="asdfasdfa"
+          coordinate={startCoords}
+        />
+        <Marker coordinate={destCoords} />
         {draw && (
           <Geojson
             geojson={geojson}

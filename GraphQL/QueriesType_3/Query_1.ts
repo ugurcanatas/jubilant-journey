@@ -4,7 +4,13 @@ export const query_1 = gql`
   query GetLongestTripByDate($date: String!) {
     getLongestTripByDate(date: $date) {
       trip_distance
-      lookup_result {
+      PULocationResult {
+        Borough
+        Zone
+        X
+        Y
+      }
+      DOLocationResult {
         Borough
         Zone
         X
