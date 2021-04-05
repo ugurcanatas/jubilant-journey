@@ -14,13 +14,8 @@ import { query_3 } from "../../../GraphQL/QueriesType_2/Query_3";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface CustomDataInterface {
-  tpep_pickup_datetime: number;
-  trip_distance: number;
-  tpep_dropoff_datetime: number;
-  startDate: string;
-  endDate: string;
-}
+//import types
+import { T_Type2_Query3 } from "../customTypes";
 
 export const PageType2Query3 = ({ navigation }: { navigation: any }) => {
   React.useLayoutEffect(() => {
@@ -98,7 +93,7 @@ export const PageType2Query3 = ({ navigation }: { navigation: any }) => {
     },
   });
 
-  const renderChilds = ({ item }: { item: CustomDataInterface }) => {
+  const renderChilds = ({ item }: { item: T_Type2_Query3 }) => {
     const { startDate, endDate, trip_distance } = item;
     return (
       <View style={styles.listItem}>
@@ -142,7 +137,7 @@ export const PageType2Query3 = ({ navigation }: { navigation: any }) => {
           <FlatList
             data={getMinDistanceTrips}
             renderItem={renderChilds}
-            keyExtractor={(item: CustomDataInterface) =>
+            keyExtractor={(item: T_Type2_Query3) =>
               item.tpep_pickup_datetime.toString()
             }
           />

@@ -10,15 +10,8 @@ import {
 import { useQuery } from "@apollo/client";
 import { query_2 } from "../../../GraphQL/QueriesType_2/Query_2";
 
-interface IDField {
-  custom_id: number;
-  dateString: string;
-}
-
-interface FlatListInterface {
-  _id: IDField;
-  avarageTotalAmount: number;
-}
+//import types
+import { FlatListTypes } from "../customTypes";
 
 export const PageType2Query2 = () => {
   const { data, loading, error } = useQuery(query_2, {
@@ -27,7 +20,7 @@ export const PageType2Query2 = () => {
     },
   });
 
-  const renderChildItems = ({ item }: { item: FlatListInterface }) => {
+  const renderChildItems = ({ item }: { item: FlatListTypes }) => {
     const { _id, avarageTotalAmount } = item;
     const { dateString } = _id;
     return (
@@ -56,9 +49,7 @@ export const PageType2Query2 = () => {
         <FlatList
           data={getDailyAvarage}
           renderItem={renderChildItems}
-          keyExtractor={(item: FlatListInterface) =>
-            item._id.custom_id.toString()
-          }
+          keyExtractor={(item: FlatListTypes) => item._id.custom_id.toString()}
         />
       );
     }

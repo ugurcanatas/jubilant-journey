@@ -16,19 +16,8 @@ import { GetTaxiZones } from "../../../GraphQL/QueryTaxiZones";
 import { query_1 } from "../../../GraphQL/QueriesType_2/Query_1";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native-gesture-handler";
-
-interface TaxiZoneDataTypes {
-  Borough: string;
-  Zone: string;
-  LocationID: number;
-  service_zone: string;
-}
-
-interface Q1_FlatList {
-  _id: string;
-  countOfVehicles: number;
-  lookup_result: TaxiZoneDataTypes;
-}
+//import types
+import { TaxiZoneDataTypes } from "../customTypes";
 
 export const PageType2Query1 = ({ navigation }: { navigation: any }) => {
   const [pickerValue, setPickerValue] = useState(1);

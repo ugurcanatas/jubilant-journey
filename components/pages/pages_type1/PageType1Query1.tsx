@@ -8,16 +8,8 @@ import {
 } from "react-native";
 import { useQuery } from "@apollo/client";
 import { query_1 } from "../../../GraphQL/QueriesType_1/Query_1";
-
-export interface CustomIDInterface {
-  custom_id: string;
-  dateString: string;
-}
-
-interface ListItemInterface {
-  sumPassengers: number;
-  _id: CustomIDInterface;
-}
+//import types
+import { FlatListTypes } from "../customTypes";
 
 export const PageType1Query1 = () => {
   const { data, error, loading } = useQuery(query_1);
@@ -25,7 +17,7 @@ export const PageType1Query1 = () => {
     console.log("Data received ", data);
   }
 
-  const renderListItem = ({ item }: { item: ListItemInterface }) => {
+  const renderListItem = ({ item }: { item: FlatListTypes }) => {
     console.log("RENDERING VIEW");
     const { _id, sumPassengers } = item;
     const { dateString } = _id;
@@ -55,7 +47,7 @@ export const PageType1Query1 = () => {
           <FlatList
             renderItem={renderListItem}
             data={findSumOfPassengers}
-            keyExtractor={(item: ListItemInterface) =>
+            keyExtractor={(item: FlatListTypes) =>
               item._id.custom_id.toString()
             }
           />

@@ -10,17 +10,13 @@ import {
 import { useQuery } from "@apollo/client";
 
 import { query_3 } from "../../../GraphQL/QueriesType_1/Query_3";
-
-interface InterfaceQ3 {
-  trip_distance: number;
-  tpep_pickup_datetime: number;
-  convertedDate: string;
-}
+//import types
+import { TypeQ3T1 } from "../customTypes";
 
 export const PageType1Query3 = () => {
   const { data, error, loading } = useQuery(query_3);
 
-  const renderListItem = ({ item }: { item: InterfaceQ3 }) => {
+  const renderListItem = ({ item }: { item: TypeQ3T1 }) => {
     const { trip_distance, convertedDate } = item;
 
     return (
@@ -46,7 +42,7 @@ export const PageType1Query3 = () => {
           <FlatList
             renderItem={renderListItem}
             data={maxDistanceTrips}
-            keyExtractor={(item: InterfaceQ3) =>
+            keyExtractor={(item: TypeQ3T1) =>
               item.tpep_pickup_datetime.toString()
             }
           />

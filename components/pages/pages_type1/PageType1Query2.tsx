@@ -14,13 +14,7 @@ import {
 import { useLazyQuery, useQuery } from "@apollo/client";
 import { query_2 } from "../../../GraphQL/QueriesType_1/Query_2";
 
-import { CustomIDInterface } from "./PageType1Query1";
-
-interface DistanceInterface {
-  total: number;
-  _id: CustomIDInterface;
-  countOfDate: number;
-}
+import { FlatListTypes } from "../customTypes";
 
 export const PageType1Query2 = () => {
   const [distance, setDistance] = useState("2.0");
@@ -29,18 +23,7 @@ export const PageType1Query2 = () => {
     variables: { trip_distance: distance },
   });
 
-  //   const { loading, error, data } = useQuery(query_2, {
-  //     variables: { trip_distance: distance },
-  //   });
-
-  const valueChanged = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
-    const value = e.nativeEvent.text;
-
-    console.log("Value Changed", value);
-    setDistance(value);
-  };
-
-  const renderListItems = ({ item }: { item: DistanceInterface }) => {
+  const renderListItems = ({ item }: { item: FlatListTypes }) => {
     const { total, countOfDate, _id } = item;
     const { dateString } = _id;
 
@@ -89,9 +72,7 @@ export const PageType1Query2 = () => {
 
     return (
       <FlatList
-        keyExtractor={(item: DistanceInterface) =>
-          item._id.custom_id.toString()
-        }
+        keyExtractor={(item: FlatListTypes) => item._id.custom_id.toString()}
         data={mostTraveledUnder}
         renderItem={renderListItems}
       />

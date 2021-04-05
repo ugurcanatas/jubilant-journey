@@ -17,31 +17,11 @@ import { Ionicons, AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 import { query_1 } from "../../../GraphQL/QueriesType_3/Query_1";
 
+//import types
+import { ICoordinates, TCoordinates, TFeatureCollection } from "../customTypes";
+
 const apikey =
   "pk.eyJ1IjoieWl5dGVjcCIsImEiOiJjanNtYnMwazIwN2I4NDRxZngwNGt5M3F3In0.eI-qjRstzkOwS7oTBSA9_g";
-
-type ICoordinates = {
-  latitude: number;
-  longitude: number;
-};
-
-type TCoordinates = number[];
-
-type TGeometry = {
-  type: string;
-  coordinates: [TCoordinates];
-};
-
-type TFeatures = {
-  type: string;
-  properties: any;
-  geometry: TGeometry;
-};
-
-type TFeatureCollection = {
-  type: string;
-  features: [TFeatures];
-};
 
 export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
   const [showFilter, setShowFilter] = useState(false);
@@ -110,6 +90,43 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
     console.log("USE EFFECT DRAW", draw);
   }, [loading, called, data, draw]);
 
+  const requestMapBoxAPI = async (
+    start: ICoordinates,
+    destination: ICoordinates
+  ) => {
+    const { latitude: sLat, longitude: sLon } = start;
+    const { latitude: dLat, longitude: dLon } = destination;
+    const endpoint = `https://api.mapbox.com/directions/v5/mapbox/driving/${sLat},${sLon};${dLat},${dLon}?geometries=geojson&access_token=${apikey}`;
+    const resp = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+
+    const response_parsed = await resp.json();
+    return await response_parsed;
+  };
+
+  const createFeaturesLineString = (
+    coordinates: [TCoordinates]
+  ): TFeatureCollection => {
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "LineString",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates,
+          },
+        },
+      ],
+    };
+  };
+
   const drawRoute = async () => {
     const { getLongestTripByDate } = data;
     const {
@@ -136,73 +153,43 @@ export const PageType3Query1 = ({ navigation }: { navigation: any }) => {
     console.log("Start Coords", startCoords);
     console.log("Destination Coords", destCoords);
 
-    const endpoint = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLat},${startLon};${coordinates[0]},${coordinates[1]}?geometries=geojson&access_token=${apikey}`;
+    const res = await requestMapBoxAPI(
+      { latitude: startLat, longitude: startLon },
+      { latitude: coordinates[0], longitude: coordinates[1] }
+    );
 
-    let resp = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-    const response = await resp.json();
-    console.log("RESPONSE", response);
-    if (response.code !== "NoRoute") {
-      const { routes } = response;
+    if (res.code === "Ok") {
+      const { routes } = res;
       const [routeData] = routes;
       const { geometry: routeGeometry } = routeData;
       const { coordinates: routeCoordinates } = routeGeometry;
-      const gJSON: TFeatureCollection = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "LineString",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: routeCoordinates,
-            },
-          },
-        ],
-      };
+      const gJSON = createFeaturesLineString(routeCoordinates);
       setGeojson(gJSON);
       setDraw(true);
     } else {
+      //No Route Found. Call API again with the new destination LATLNG
       const { X, Y } = DOLocationResult[0];
       setDestCoords({
         latitude: Y,
         longitude: X,
       });
-
-      let endpoint = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLat},${startLon};${X},${Y}?geometries=geojson&access_token=${apikey}`;
-
-      let resp = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+      const newRes = await requestMapBoxAPI(
+        {
+          latitude: startLat,
+          longitude: startLon,
         },
-      });
-      const response = await resp.json();
-      console.log("RESPONSE WITH FIXED", response);
+        {
+          latitude: X,
+          longitude: Y,
+        }
+      );
+      console.log("RESPONSE WITH FIXED", newRes);
 
-      const { routes } = response;
+      const { routes } = newRes;
       const [routeData] = routes;
       const { geometry: routeGeometry } = routeData;
       const { coordinates: routeCoordinates } = routeGeometry;
-      const gJSON: TFeatureCollection = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "LineString",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: routeCoordinates,
-            },
-          },
-        ],
-      };
+      const gJSON = createFeaturesLineString(routeCoordinates);
       setGeojson(gJSON);
       setDraw(true);
     }
