@@ -92,6 +92,13 @@ type TypeQ2T3 = {
   lookup_result: [TaxiZoneDataTypes];
 };
 
+type TMinMax = {
+  min: number;
+  max: number;
+  PULocationID: number;
+  lookup_result: TaxiZoneDataTypes[];
+};
+
 export {
   T_Type2_Query3,
   TaxiZoneDataTypes,
@@ -103,4 +110,5 @@ export {
   FlatListTypes,
   TypeQ3T1,
   TypeQ2T3,
+  TMinMax,
 };

@@ -9,7 +9,7 @@ import {
   ScrollView,
   FlatList,
 } from "react-native";
-import MapView, { Geojson, Marker, AnimatedRegion } from "react-native-maps";
+import MapView, { Geojson } from "react-native-maps";
 import { AntDesign, Ionicons, Entypo } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
