@@ -7,9 +7,10 @@ import {
   Modal,
   SafeAreaView,
   ScrollView,
+  FlatList,
 } from "react-native";
 import MapView, { Geojson, Marker, AnimatedRegion } from "react-native-maps";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons, Entypo } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useQuery, useLazyQuery } from "@apollo/client";
@@ -31,9 +32,29 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
     error: locationsError,
   } = useQuery(GetTaxiZones);
   const [showFilter, setShowFilter] = useState(false);
-  const [taxizones, setTaxiZones] = useState<[TaxiZoneDataTypes] | []>([]);
+  const [taxizones, setTaxiZones] = useState<TaxiZoneDataTypes[] | []>([]);
   const [flatList, setFlatList] = useState<[TypeQ2T3] | []>([]);
   const [lineStrings, setLineStrings] = useState<TFeatureCollection[] | []>([]);
+  const [showFlatList, setShowFlatList] = useState(false);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <TouchableOpacity onPress={() => setShowFlatList(!showFlatList)}>
+            <View style={{ marginHorizontal: 12 }}>
+              <Entypo name="list" size={32} color="green" />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowFilter(!showFilter)}>
+            <View style={{ marginHorizontal: 12 }}>
+              <AntDesign name="filter" size={32} color="black" />
+            </View>
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
 
   useEffect(() => {
     if (!locationsLoading) {
@@ -57,7 +78,6 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
       });
 
       console.log("URL FETCH SET", fetchSet);
-      const fcArray: TFeatureCollection[] = [];
       fetchSet.map((url: string) =>
         fetch(url, {
           method: "GET",
@@ -77,30 +97,10 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
               coordinates
             );
             setLineStrings((prev) => [...prev, ...[fc]]);
-            fcArray.push(fc);
           })
       );
-      //setLineStrings(fcArray);
-
-      // const resolvedData = Promise.all(promises).then((result: string[]) => {
-      //   console.log("RESULT", result);
-
-      //   return result.map((r) => JSON.parse(r));
-      // });
     }
   }, [locationsData, locationsLoading, flatList]);
-
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={() => setShowFilter(!showFilter)}>
-          <View style={{ marginHorizontal: 12 }}>
-            <AntDesign name="filter" size={32} color="black" />
-          </View>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
 
   const createFeaturesLineString = (
     coordinates: [TCoordinates]
@@ -109,6 +109,8 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
       type: "FeatureCollection",
       properties: {
         id: uuid.v4(),
+        visible: true,
+        color: genRGBA(),
       },
       features: [
         {
@@ -123,6 +125,13 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
     };
   };
 
+  const genRGBA = () => {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgba(${r},${g},${b},0.5)`;
+  };
+
   return (
     <View style={{ flex: 1 }}>
       {taxizones.length > 0 && (
@@ -131,6 +140,13 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
           showFilter={showFilter}
           modalVisible={(visible: boolean) => setShowFilter(visible)}
           flatListData={(data: [TypeQ2T3]) => setFlatList(data)}
+        />
+      )}
+      {flatList.length > 0 && (
+        <FlatListData
+          showListModal={showFlatList}
+          modalVisible={(visible: boolean) => setShowFlatList(visible)}
+          flatlist={flatList}
         />
       )}
       <MapView
@@ -147,8 +163,7 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
             <Geojson
               geojson={v}
               key={v.properties?.id}
-              strokeColor="red"
-              fillColor="green"
+              strokeColor={v.properties?.color}
               strokeWidth={6}
             />
           ))}
@@ -157,8 +172,106 @@ export const PageType3Query2 = ({ navigation }: { navigation: any }) => {
   );
 };
 
+type FlatListComponentProps = {
+  flatlist: TypeQ2T3[] | [];
+  showListModal: boolean;
+  modalVisible: (visible: boolean) => void;
+};
+
+const FlatListData = ({
+  flatlist,
+  showListModal,
+  modalVisible,
+}: FlatListComponentProps) => {
+  const renderChilds = ({ item }: { item: TypeQ2T3 }) => {
+    const { trip_distance, lookup_result } = item;
+    const [lookupObject] = lookup_result;
+    const { Borough, Zone, LocationID, X, Y } = lookupObject;
+    return (
+      <View style={styles.listItem}>
+        <View
+          style={{
+            flexDirection: "column",
+            width: "100%",
+            paddingHorizontal: 12,
+          }}
+        >
+          <Text style={{ fontFamily: "Roboto-Condensed-Bold", fontSize: 18 }}>
+            {Borough}/{Zone}
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              marginVertical: 12,
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ flexDirection: "column" }}>
+              <Text style={styles.title}>Latitude</Text>
+              <Text style={styles.value}>{X}</Text>
+            </View>
+            <View style={{ flexDirection: "column" }}>
+              <Text style={styles.title}>Longitude</Text>
+              <Text style={styles.value}>{Y}</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderFlatList = () => {
+    return (
+      <FlatList
+        keyExtractor={() => uuid.v4()}
+        data={flatlist}
+        renderItem={renderChilds}
+      />
+    );
+  };
+
+  return (
+    <Modal
+      style={styles.modalView}
+      animationType="slide"
+      transparent={false}
+      presentationStyle="overFullScreen"
+      visible={showListModal}
+      onRequestClose={() => modalVisible(false)}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginHorizontal: 12,
+          }}
+        >
+          <Text style={{ fontFamily: "Roboto-Condensed-Bold", fontSize: 32 }}>
+            Request List ({flatlist.length} routes found)
+          </Text>
+          <TouchableOpacity onPress={() => modalVisible(false)}>
+            <Ionicons name="ios-close" size={32} color="red" />
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "column",
+            justifyContent: "flex-start",
+          }}
+        >
+          {flatlist.length > 0 && renderFlatList()}
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+
 type FilterProps = {
-  pickerData: [TaxiZoneDataTypes] | [];
+  pickerData: TaxiZoneDataTypes[] | [];
   showFilter: boolean;
   modalVisible: (visible: boolean) => void;
   flatListData: (data: [TypeQ2T3]) => void;
@@ -328,4 +441,32 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   buttonTouchable: { flex: 1, marginHorizontal: 12 },
+  listItem: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 1,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    marginHorizontal: 12,
+    marginVertical: 12,
+    paddingVertical: 12,
+    borderRadius: 6,
+  },
+  title: {
+    fontFamily: "Roboto-Condensed-Regular",
+    fontSize: 18,
+    textDecorationLine: "underline",
+    textDecorationColor: "black",
+    paddingVertical: 6,
+  },
+  value: {
+    fontFamily: "Roboto-Condensed-Bold",
+    fontSize: 20,
+  },
 });

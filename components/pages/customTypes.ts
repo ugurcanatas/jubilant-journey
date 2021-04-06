@@ -39,6 +39,8 @@ type TFeatureCollection = {
 
 type OptionalID = {
   id: string;
+  visible: boolean;
+  color: string;
 };
 
 /**
